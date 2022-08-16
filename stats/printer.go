@@ -85,24 +85,39 @@ func defaultHeaders(percentiles []int) []string {
 }
 
 func headersMap(percentiles []int) map[string]string {
+	// headers := map[string]string{
+	// 	"count":    "Count",
+	// 	"1xx":      "1xx",
+	// 	"2xx":      "2xx",
+	// 	"3xx":      "3xx",
+	// 	"4xx":      "4xx",
+	// 	"5xx":      "5xx",
+	// 	"method":   "Method",
+	// 	"uri":      "Uri",
+	// 	"min":      "Min",
+	// 	"max":      "Max",
+	// 	"sum":      "Sum",
+	// 	"avg":      "Avg",
+	// 	"stddev":   "Stddev",
+	// 	"min_body": "Min(Body)",
+	// 	"max_body": "Max(Body)",
+	// 	"sum_body": "Sum(Body)",
+	// 	"avg_body": "Avg(Body)",
+	// }
+
 	headers := map[string]string{
-		"count":    "Count",
-		"1xx":      "1xx",
-		"2xx":      "2xx",
-		"3xx":      "3xx",
-		"4xx":      "4xx",
-		"5xx":      "5xx",
-		"method":   "Method",
-		"uri":      "Uri",
-		"min":      "Min",
-		"max":      "Max",
-		"sum":      "Sum",
-		"avg":      "Avg",
-		"stddev":   "Stddev",
-		"min_body": "Min(Body)",
-		"max_body": "Max(Body)",
-		"sum_body": "Sum(Body)",
-		"avg_body": "Avg(Body)",
+		"2xx":    "2xx",
+		"3xx":    "3xx",
+		"4xx":    "4xx",
+		"5xx":    "5xx",
+		"count":  "Count",
+		"sum":    "Sum",
+		"method": "Method",
+		"uri":    "Uri",
+		"min":    "Min",
+		"avg":    "Avg",
+		"p99":    "P99",
+		"max":    "Max",
 	}
 
 	for _, p := range percentiles {
@@ -118,14 +133,16 @@ type PrintOptions struct {
 	noHeaders       bool
 	showFooters     bool
 	decodeUri       bool
+	top             int
 	paginationLimit int
 }
 
-func NewPrintOptions(noHeaders, showFooters, decodeUri bool, paginationLimit int) *PrintOptions {
+func NewPrintOptions(noHeaders, showFooters, decodeUri bool, top int, paginationLimit int) *PrintOptions {
 	return &PrintOptions{
 		noHeaders:       noHeaders,
 		showFooters:     showFooters,
 		decodeUri:       decodeUri,
+		top:             top,
 		paginationLimit: paginationLimit,
 	}
 }
@@ -312,12 +329,14 @@ func (p *Printer) GenerateLineWithDiff(from, to *HTTPStat, quoteUri bool) []stri
 	return line
 }
 
-func (p *Printer) GenerateFooter(counts map[string]int) []string {
+func (p *Printer) GenerateFooter(counts map[string]int, sum float64) []string {
 	keyLen := len(p.keywords)
 	line := make([]string, 0, keyLen)
 
 	for i := 0; i < keyLen; i++ {
 		switch p.keywords[i] {
+		case "sum":
+			line = append(line, fmt.Sprintf("%.3f", sum))
 		case "count":
 			line = append(line, fmt.Sprint(counts["count"]))
 		case "1xx":
@@ -412,6 +431,9 @@ func (p *Printer) printTable(hsFrom, hsTo *HTTPStats) {
 		for _, s := range hsFrom.stats {
 			data := p.GenerateLine(s, false)
 			table.Append(data)
+			if table.NumLines() >= p.printOptions.top {
+				break
+			}
 		}
 	} else {
 		for _, to := range hsTo.stats {
@@ -424,18 +446,22 @@ func (p *Printer) printTable(hsFrom, hsTo *HTTPStats) {
 				data = p.GenerateLineWithDiff(from, to, false)
 			}
 			table.Append(data)
+			if table.NumLines() >= p.printOptions.top {
+				break
+			}
 		}
 	}
 
 	if p.printOptions.showFooters {
 		var footer []string
 		if hsTo == nil {
-			footer = p.GenerateFooter(hsFrom.CountAll())
+			footer = p.GenerateFooter(hsFrom.CountAll(), hsFrom.SumAll())
 		} else {
 			footer = p.GenerateFooterWithDiff(hsFrom.CountAll(), hsTo.CountAll())
 		}
-		table.SetFooter(footer)
-		table.SetFooterAlignment(tablewriter.ALIGN_LEFT)
+		table.Append(footer)
+		table.SetFooter(p.headers)
+		// table.SetFooterAlignment(tablewriter.ALIGN_LEFT)
 	}
 
 	table.SetAlignment(tablewriter.ALIGN_LEFT)
@@ -469,7 +495,7 @@ func (p *Printer) printMarkdown(hsFrom, hsTo *HTTPStats) {
 	if p.printOptions.showFooters {
 		var footer []string
 		if hsTo == nil {
-			footer = p.GenerateFooter(hsFrom.CountAll())
+			footer = p.GenerateFooter(hsFrom.CountAll(), hsFrom.SumAll())
 		} else {
 			footer = p.GenerateFooterWithDiff(hsFrom.CountAll(), hsTo.CountAll())
 		}

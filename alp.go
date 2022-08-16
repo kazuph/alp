@@ -170,6 +170,7 @@ func (p *Profiler) Run(args []string) error {
 		options.DecodeUri(p.globalFlags.DecodeUri),
 		options.Format(p.globalFlags.Format),
 		options.Limit(p.globalFlags.Limit),
+		options.Top(p.globalFlags.Top),
 		options.Location(p.globalFlags.Location),
 		options.Output(p.globalFlags.Output),
 		options.NoHeaders(p.globalFlags.NoHeaders),
@@ -219,7 +220,7 @@ func (p *Profiler) Run(args []string) error {
 	sts.SetOptions(opts)
 	sts.SetSortOptions(sortOptions)
 
-	printOptions := stats.NewPrintOptions(opts.NoHeaders, opts.ShowFooters, opts.DecodeUri, opts.PaginationLimit)
+	printOptions := stats.NewPrintOptions(opts.NoHeaders, opts.ShowFooters, opts.DecodeUri, opts.Top, opts.PaginationLimit)
 	printer := stats.NewPrinter(p.outWriter, opts.Output, opts.Format, percentiles, printOptions)
 	if err = printer.Validate(); err != nil {
 		return err
@@ -364,7 +365,7 @@ Loop:
 		sts.Set(s.Uri, s.Method, s.Status, s.ResponseTime, s.BodyBytes, 0)
 
 		if sts.CountUris() > opts.Limit {
-			return fmt.Errorf("Too many URI's (%d or less)", opts.Limit)
+			return fmt.Errorf("too many URI's (%d or less)", opts.Limit)
 		}
 	}
 

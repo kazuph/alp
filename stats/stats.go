@@ -139,6 +139,14 @@ func (hs *HTTPStats) CountAll() map[string]int {
 	return counts
 }
 
+func (hs *HTTPStats) SumAll() float64 {
+	sum := 0.0
+	for _, s := range hs.stats {
+		sum += s.SumResponseTime()
+	}
+	return sum
+}
+
 func (hs *HTTPStats) SortWithOptions() {
 	hs.Sort(hs.sortOptions, hs.options.Reverse)
 }

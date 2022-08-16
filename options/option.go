@@ -9,12 +9,14 @@ import (
 )
 
 const (
-	DefaultSortOption      = "count"
-	DefaultFormatOption    = "table"
-	DefaultLimitOption     = 5000
-	DefaultLocationOption  = "Local"
-	DefaultOutputOption    = "all"
-	DefaultPagenationLimit = 100
+	DefaultSortOption        = "count"
+	DefaultFormatOption      = "table"
+	DefaultShowFootersOption = "true"
+	DefaultLimitOption       = 5000
+	DefaultTopOption         = 5000
+	DefaultLocationOption    = "Local"
+	DefaultOutputOption      = "2xx,3xx,4xx,5xx,count,sum,method,uri,min,avg,p99,max" // "all"
+	DefaultPagenationLimit   = 100
 	// ltsv
 	DefaultApptimeLabelOption = "apptime"
 	DefaultReqtimeLabelOption = "reqtime"
@@ -70,6 +72,7 @@ type Options struct {
 	NoHeaders               bool           `yaml:"noheaders"`
 	ShowFooters             bool           `yaml:"show_footers"`
 	Limit                   int            `yaml:"limit"`
+	Top                     int            `yaml:"top"`
 	MatchingGroups          []string       `yaml:"matching_groups"`
 	Filters                 string         `yaml:"filters"`
 	PosFile                 string         `yaml:"pos_file"`
@@ -187,6 +190,7 @@ func NoHeaders(b bool) Option {
 }
 
 func ShowFooters(b bool) Option {
+	b = true
 	return func(opts *Options) {
 		if b {
 			opts.ShowFooters = b
@@ -198,6 +202,14 @@ func Limit(i int) Option {
 	return func(opts *Options) {
 		if i > 0 {
 			opts.Limit = i
+		}
+	}
+}
+
+func Top(i int) Option {
+	return func(opts *Options) {
+		if i > 0 {
+			opts.Top = i
 		}
 	}
 }
@@ -512,6 +524,7 @@ func NewOptions(opt ...Option) *Options {
 		Sort:            DefaultSortOption,
 		Format:          DefaultFormatOption,
 		Limit:           DefaultLimitOption,
+		Top:             DefaultTopOption,
 		Location:        DefaultLocationOption,
 		Output:          DefaultOutputOption,
 		Percentiles:     DefaultPercentilesOption,

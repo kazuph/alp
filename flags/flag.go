@@ -22,6 +22,7 @@ type GlobalFlags struct {
 	NoHeaders               bool
 	ShowFooters             bool
 	Limit                   int
+	Top                     int
 	Location                string
 	Output                  string
 	MatchingGroups          string
@@ -72,6 +73,8 @@ func (f *GlobalFlags) InitGlobalFlags(app *kingpin.Application) {
 		BoolVar(&f.ShowFooters)
 	app.Flag("limit", "The maximum number of results to display").
 		PlaceHolder(fmt.Sprint(options.DefaultLimitOption)).IntVar(&f.Limit)
+	app.Flag("top", "The maximum number of results to display").
+		PlaceHolder(fmt.Sprint(options.DefaultTopOption)).IntVar(&f.Top)
 	app.Flag("location", "Location name for the timezone").
 		PlaceHolder(options.DefaultLocationOption).StringVar(&f.Location)
 	app.Flag("output", "Specifies the results to display, separated by commas").Short('o').
