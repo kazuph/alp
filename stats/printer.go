@@ -424,6 +424,21 @@ func findHTTPStatFrom(hsFrom *HTTPStats, hsTo *HTTPStat) *HTTPStat {
 	return nil
 }
 
+func transpose(slice [][]int) [][]int {
+	xl := len(slice[0])
+	yl := len(slice)
+	result := make([][]int, xl)
+	for i := range result {
+		result[i] = make([]int, yl)
+	}
+	for i := 0; i < xl; i++ {
+		for j := 0; j < yl; j++ {
+			result[i][j] = slice[j][i]
+		}
+	}
+	return result
+}
+
 func (p *Printer) printTable(hsFrom, hsTo *HTTPStats) {
 	table := tablewriter.NewWriter(p.writer)
 	table.SetHeader(p.headers)
@@ -456,6 +471,33 @@ func (p *Printer) printTable(hsFrom, hsTo *HTTPStats) {
 		var footer []string
 		if hsTo == nil {
 			footer = p.GenerateFooter(hsFrom.CountAll(), hsFrom.SumAll())
+			// pp.Print(hsFrom.DumpGraphData())
+
+			// TODO: terminalgraph
+			limit := 5
+			count := 0
+			fmt.Printf("\n%s ", "@")
+			h := hsFrom.DumpGraphData()
+			array := [][]int{}
+			for _, s := range hsFrom.stats {
+				fmt.Printf("%s,", s.Uri)
+				key := fmt.Sprintf("%s_%s", s.Method, s.Uri)
+				// fmt.Printf("%v,", h[key])
+				array = append(array, h[key])
+				count++
+				if count >= limit {
+					break
+				}
+			}
+			fmt.Printf("\n")
+			tpArray := transpose(array)
+			for i := 0; i < len(tpArray); i++ {
+				fmt.Printf("%d,", i)
+				for j := 0; j < len(tpArray[i]); j++ {
+					fmt.Printf("%d,", tpArray[i][j])
+				}
+				fmt.Printf("\n")
+			}
 		} else {
 			footer = p.GenerateFooterWithDiff(hsFrom.CountAll(), hsTo.CountAll())
 		}

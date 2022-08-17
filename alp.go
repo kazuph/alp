@@ -362,7 +362,7 @@ Loop:
 			continue Loop
 		}
 
-		sts.Set(s.Uri, s.Method, s.Status, s.ResponseTime, s.BodyBytes, 0)
+		sts.Set(s.Time, s.Uri, s.Method, s.Status, s.ResponseTime, s.BodyBytes, 0)
 
 		if sts.CountUris() > opts.Limit {
 			return fmt.Errorf("too many URI's (%d or less)", opts.Limit)

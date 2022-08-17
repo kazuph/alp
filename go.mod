@@ -19,11 +19,19 @@ require (
 )
 
 require (
+	github.com/k0kubun/pp v3.0.1+incompatible
+	github.com/k0kubun/pp/v3 v3.1.0
+)
+
+require (
 	github.com/kr/text v0.2.0 // indirect
+	github.com/mattn/go-colorable v0.1.12 // indirect
+	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/rivo/uniseg v0.3.4 // indirect
 	github.com/stretchr/testify v1.8.0 // indirect
 	github.com/tkuchiki/go-timezone v0.2.2 // indirect
+	golang.org/x/text v0.3.7 // indirect
 )
 
 go 1.17

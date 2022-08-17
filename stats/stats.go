@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"sort"
 	"sync"
+	"time"
 
 	"github.com/tkuchiki/alp/errors"
 	"github.com/tkuchiki/alp/helpers"
@@ -59,7 +60,10 @@ func NewHTTPStats(useResTimePercentile, useRequestBodyBytesPercentile, useRespon
 	}
 }
 
-func (hs *HTTPStats) Set(uri, method string, status int, restime, resBodyBytes, reqBodyBytes float64) {
+var firstTime *time.Time
+var graphData map[string][]int = make(map[string][]int)
+
+func (hs *HTTPStats) Set(timeStr, uri, method string, status int, restime, resBodyBytes, reqBodyBytes float64) {
 	if len(hs.uriMatchingGroups) > 0 {
 		for _, re := range hs.uriMatchingGroups {
 			if ok := re.Match([]byte(uri)); ok {
@@ -70,7 +74,21 @@ func (hs *HTTPStats) Set(uri, method string, status int, restime, resBodyBytes, 
 		}
 	}
 
+	hsTime, _ := time.Parse(time.RFC3339, timeStr)
+
+	if firstTime == nil {
+		firstTime = &hsTime
+	}
+	timeWindow := hsTime.Sub(*firstTime).Seconds()
+
 	key := fmt.Sprintf("%s_%s", method, uri)
+	_, ok := graphData[key]
+	if !ok {
+		graphData[key] = make([]int, 70)
+		graphData[key][int(timeWindow)] = 0
+	}
+	graphData[key][int(timeWindow)]++
+	// fmt.Printf("%v\n", key)
 
 	idx := hs.hints.loadOrStore(key)
 
@@ -145,6 +163,10 @@ func (hs *HTTPStats) SumAll() float64 {
 		sum += s.SumResponseTime()
 	}
 	return sum
+}
+
+func (hs *HTTPStats) DumpGraphData() map[string][]int {
+	return graphData
 }
 
 func (hs *HTTPStats) SortWithOptions() {

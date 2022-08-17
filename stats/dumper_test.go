@@ -10,7 +10,7 @@ import (
 func TestDumpStats(t *testing.T) {
 	got := new(bytes.Buffer)
 	stats := NewHTTPStats(true, false, false)
-	stats.Set("/foo/bar", "POST", 200, 0.057, 12, 0)
+	stats.Set("2022-01-01T10:20:30", "/foo/bar", "POST", 200, 0.057, 12, 0)
 
 	err := stats.DumpStats(got)
 	if err != nil {
